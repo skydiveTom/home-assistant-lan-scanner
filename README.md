@@ -22,10 +22,19 @@ Custom integration for Home Assistant that scans your local network, discovers d
 
 ### Via HACS (recommended)
 
-1. Add this repository as a [custom repository](https://hacs.xyz/docs/faq/custom_repositories/) in HACS
-2. Install **LAN Scanner**
+1. Add this repository as a [custom repository](https://hacs.xyz/docs/faq/custom_repositories/) in HACS (category: **Integration**)
+2. Install **LAN Scanner** — choose version **v1.0.0** if prompted
 3. Restart Home Assistant
 4. Go to **Settings → Devices & services → Add integration → LAN Scanner**
+
+#### HACS troubleshooting
+
+If you see `The version fd9393a ... can not be used with HACS`, HACS cached an old commit from before `hacs.json` was added. Fix:
+
+1. **HACS** → **Integrations** → remove **LAN Scanner** if present (⋮ → Delete)
+2. **HACS** → **⋮** → **Custom repositories** → remove `skydiveTom/home-assistant-lan-scanner`
+3. **HACS** → **⋮** → **Clear cache** (or restart Home Assistant)
+4. Re-add the custom repository and install again — select **v1.0.0** or latest **main**
 
 ### Manual installation
 
