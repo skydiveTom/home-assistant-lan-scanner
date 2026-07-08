@@ -1,0 +1,99 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "LAN Scanner",
+        "description": "Configure network scanning for your local LAN.",
+        "data": {
+          "local_ip": "Local IP address",
+          "subnet": "Subnet (CIDR)",
+          "scan_interval": "Scan interval (seconds)",
+          "scan_ports": "Scan ports for RTSP cameras",
+          "track_devices": "Create device trackers"
+        }
+      }
+    },
+    "error": {
+      "invalid_network": "Invalid IP address or subnet.",
+      "scan_interval_too_low": "Scan interval must be at least 300 seconds."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "LAN Scanner options",
+        "menu_options": {
+          "settings": "Scan settings",
+          "mac_names": "Device names (MAC)"
+        }
+      },
+      "settings": {
+        "title": "Scan settings",
+        "data": {
+          "scan_interval": "Scan interval (seconds)",
+          "scan_ports": "Scan ports for RTSP cameras"
+        }
+      },
+      "mac_names": {
+        "title": "Device names",
+        "description": "Assign friendly names to devices by MAC address.\n\nDiscovered devices:\n{known_devices}\n\nSaved names:\n{saved_names}",
+        "data": {
+          "action": "Action",
+          "mac": "MAC address",
+          "name": "Friendly name",
+          "mac_to_remove": "MAC to remove"
+        }
+      }
+    },
+    "error": {
+      "invalid_mac": "Invalid MAC address.",
+      "name_required": "Name is required."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "summary": {
+        "name": "Devices"
+      },
+      "ip": {
+        "name": "IP address"
+      },
+      "last_seen": {
+        "name": "Last seen"
+      },
+      "vendor": {
+        "name": "Vendor"
+      }
+    },
+    "binary_sensor": {
+      "rtsp_camera": {
+        "name": "RTSP camera"
+      }
+    },
+    "device_tracker": {
+      "presence": {
+        "name": "Presence"
+      }
+    }
+  },
+  "services": {
+    "scan": {
+      "name": "Scan network",
+      "description": "Trigger an immediate network scan."
+    },
+    "set_device_name": {
+      "name": "Set device name",
+      "description": "Assign a friendly name to a device by MAC address.",
+      "fields": {
+        "mac": {
+          "name": "MAC address",
+          "description": "MAC address of the device."
+        },
+        "name": {
+          "name": "Friendly name",
+          "description": "Name to assign to this device."
+        }
+      }
+    }
+  }
+}

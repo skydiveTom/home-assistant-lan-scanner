@@ -1,0 +1,99 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "LAN Scanner",
+        "description": "Skonfiguruj skanowanie sieci lokalnej LAN.",
+        "data": {
+          "local_ip": "Lokalny adres IP",
+          "subnet": "Podsieć (CIDR)",
+          "scan_interval": "Interwał skanowania (sekundy)",
+          "scan_ports": "Skanuj porty (kamery RTSP)",
+          "track_devices": "Twórz device trackery"
+        }
+      }
+    },
+    "error": {
+      "invalid_network": "Nieprawidłowy adres IP lub podsieć.",
+      "scan_interval_too_low": "Interwał skanowania musi wynosić co najmniej 300 sekund."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opcje LAN Scanner",
+        "menu_options": {
+          "settings": "Ustawienia skanowania",
+          "mac_names": "Nazwy urządzeń (MAC)"
+        }
+      },
+      "settings": {
+        "title": "Ustawienia skanowania",
+        "data": {
+          "scan_interval": "Interwał skanowania (sekundy)",
+          "scan_ports": "Skanuj porty (kamery RTSP)"
+        }
+      },
+      "mac_names": {
+        "title": "Nazwy urządzeń",
+        "description": "Przypisz przyjazne nazwy urządzeniom po adresie MAC.\n\nWykryte urządzenia:\n{known_devices}\n\nZapisane nazwy:\n{saved_names}",
+        "data": {
+          "action": "Akcja",
+          "mac": "Adres MAC",
+          "name": "Nazwa urządzenia",
+          "mac_to_remove": "MAC do usunięcia"
+        }
+      }
+    },
+    "error": {
+      "invalid_mac": "Nieprawidłowy adres MAC.",
+      "name_required": "Nazwa jest wymagana."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "summary": {
+        "name": "Urządzenia"
+      },
+      "ip": {
+        "name": "Adres IP"
+      },
+      "last_seen": {
+        "name": "Ostatnio widziane"
+      },
+      "vendor": {
+        "name": "Producent"
+      }
+    },
+    "binary_sensor": {
+      "rtsp_camera": {
+        "name": "Kamera RTSP"
+      }
+    },
+    "device_tracker": {
+      "presence": {
+        "name": "Obecność"
+      }
+    }
+  },
+  "services": {
+    "scan": {
+      "name": "Skanuj sieć",
+      "description": "Uruchom natychmiastowe skanowanie sieci."
+    },
+    "set_device_name": {
+      "name": "Ustaw nazwę urządzenia",
+      "description": "Przypisz przyjazną nazwę urządzeniu po adresie MAC.",
+      "fields": {
+        "mac": {
+          "name": "Adres MAC",
+          "description": "Adres MAC urządzenia."
+        },
+        "name": {
+          "name": "Nazwa urządzenia",
+          "description": "Nazwa do przypisania urządzeniu."
+        }
+      }
+    }
+  }
+}

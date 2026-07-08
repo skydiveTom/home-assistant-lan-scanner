@@ -1,0 +1,12 @@
+{
+  "domain": "lan_scanner",
+  "name": "LAN Scanner",
+  "codeowners": ["@skydiveTom"],
+  "config_flow": true,
+  "documentation": "https://github.com/skydiveTom/home-assistant-lan-scanner",
+  "issue_tracker": "https://github.com/skydiveTom/home-assistant-lan-scanner/issues",
+  "integration_type": "hub",
+  "iot_class": "local_polling",
+  "requirements": ["aiodiscover>=2.0.0", "aiooui>=0.1.5"],
+  "version": "1.0.0"
+}

@@ -1,0 +1,23 @@
+scan:
+  name: Scan network
+  description: Trigger an immediate network scan.
+  fields: {}
+
+set_device_name:
+  name: Set device name
+  description: Assign a friendly name to a device by MAC address.
+  fields:
+    mac:
+      name: MAC address
+      description: MAC address of the device (e.g. aa:bb:cc:dd:ee:ff).
+      required: true
+      example: "aa:bb:cc:dd:ee:ff"
+      selector:
+        text: {}
+    name:
+      name: Friendly name
+      description: Name to assign to this device.
+      required: true
+      example: "Garden Camera"
+      selector:
+        text: {}
