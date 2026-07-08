@@ -1,7 +1,5 @@
 {
   "name": "LAN Scanner",
-  "content_in_root": false,
-  "filename": "lan_scanner",
   "render_readme": true,
   "homeassistant": "2024.1.0"
 }
