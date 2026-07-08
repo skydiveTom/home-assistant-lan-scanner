@@ -77,6 +77,7 @@ class LanScannerDeviceTracker(LanScannerDeviceEntity, TrackerEntity):
                 "hostname": dev.hostname,
                 "vendor": dev.vendor,
                 "open_ports": dev.open_ports,
+                "is_camera": dev.is_camera,
                 "has_rtsp": dev.has_rtsp,
                 "is_rtsp_camera_only": dev.is_rtsp_camera_only,
             }

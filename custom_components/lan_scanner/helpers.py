@@ -23,6 +23,7 @@ def get_device_info(device: NetworkDevice) -> DeviceInfo:
         identifiers={(DOMAIN, device.mac)},
         name=device.friendly_name,
         manufacturer=device.vendor,
+        model="IP Camera" if device.is_camera else None,
         connections=connections or None,
     )
 

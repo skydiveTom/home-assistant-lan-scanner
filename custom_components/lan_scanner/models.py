@@ -18,6 +18,7 @@ class NetworkDevice:
     open_ports: list[int] = field(default_factory=list)
     is_rtsp_camera_only: bool = False
     has_rtsp: bool = False
+    is_camera: bool = False
     last_seen: datetime | None = None
 
     def as_dict(self) -> dict:
@@ -29,6 +30,7 @@ class NetworkDevice:
             "vendor": self.vendor,
             "friendly_name": self.friendly_name,
             "open_ports": self.open_ports,
+            "is_camera": self.is_camera,
             "is_rtsp_camera_only": self.is_rtsp_camera_only,
             "has_rtsp": self.has_rtsp,
             "last_seen": self.last_seen.isoformat() if self.last_seen else None,

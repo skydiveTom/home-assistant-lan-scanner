@@ -69,7 +69,7 @@
     },
     "binary_sensor": {
       "rtsp_camera": {
-        "name": "RTSP camera"
+        "name": "IP camera"
       }
     },
     "device_tracker": {

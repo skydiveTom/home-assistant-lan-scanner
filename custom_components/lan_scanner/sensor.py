@@ -155,6 +155,7 @@ class LanScannerDeviceVendorSensor(LanScannerDeviceEntity, SensorEntity):
             return {
                 "hostname": dev.hostname,
                 "open_ports": dev.open_ports,
+                "is_camera": dev.is_camera,
                 "has_rtsp": dev.has_rtsp,
                 "is_rtsp_camera_only": dev.is_rtsp_camera_only,
             }

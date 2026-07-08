@@ -47,12 +47,16 @@ def resolve_device_name(
     vendor: str | None,
     ip: str,
     mac_names: dict[str, str],
+    *,
+    is_camera: bool = False,
 ) -> str:
     """Resolve the best display name for a device."""
     if mac in mac_names:
         return mac_names[mac]
     if hostname and hostname != ip:
         return hostname
+    if is_camera:
+        return f"Camera {ip}"
     if is_pseudo_mac(mac):
         if vendor:
             return f"{vendor} {ip}"
@@ -89,12 +93,14 @@ class NetworkScanner:
         scan_targets = set(subnet_ips) | set(arp_by_ip) | set(self._extra_ips)
 
         port_results: dict[str, list[int]] = {}
+        rtsp_hits: set[str] = set()
         if self._scan_ports and scan_targets:
             rtsp_hits = await self._async_scan_rtsp_ports(scan_targets)
             scan_targets |= rtsp_hits
             port_results = await self._async_scan_ports(sorted(scan_targets))
+            self._merge_rtsp_hits(port_results, rtsp_hits)
             _LOGGER.info(
-                "Port scan: %d hosts checked, %d with open ports, %d RTSP",
+                "Port scan: %d hosts in subnet, %d with open ports, %d cameras (RTSP)",
                 len(scan_targets),
                 len(port_results),
                 sum(1 for ports in port_results.values() if RTSP_PORT in ports),
@@ -110,11 +116,14 @@ class NetworkScanner:
 
             processed_ips.add(ip)
             mac = normalize_mac(raw_mac)
+            open_ports = port_results.get(ip, [])
+            if not open_ports and ip in rtsp_hits:
+                open_ports = [RTSP_PORT]
             result.devices[mac] = self._build_device(
                 mac=mac,
                 ip=ip,
                 hostname=host.get("hostname"),
-                open_ports=port_results.get(ip, []),
+                open_ports=open_ports,
                 mac_names=mac_names,
                 scanned_at=result.scanned_at,
             )
@@ -155,10 +164,11 @@ class NetworkScanner:
             )
 
         _LOGGER.info(
-            "Scan complete: %d devices (subnet=%s, ARP=%d)",
+            "Scan complete: %d devices (subnet=%s, ARP=%d, cameras=%d)",
             len(result.devices),
-            self._subnet or "auto",
+            self._resolve_subnet() or "auto",
             len(arp_by_ip),
+            sum(1 for d in result.devices.values() if d.is_camera),
         )
         return result
 
@@ -175,6 +185,7 @@ class NetworkScanner:
         vendor = None if is_pseudo_mac(mac) else aiooui.get_vendor(mac)
         is_rtsp_camera_only = open_ports == [RTSP_PORT]
         has_rtsp = RTSP_PORT in open_ports
+        is_camera = has_rtsp
 
         return NetworkDevice(
             mac=mac,
@@ -182,24 +193,48 @@ class NetworkScanner:
             hostname=hostname,
             vendor=vendor,
             friendly_name=resolve_device_name(
-                mac, hostname, vendor, ip, mac_names
+                mac, hostname, vendor, ip, mac_names, is_camera=is_camera
             ),
             open_ports=open_ports,
             is_rtsp_camera_only=is_rtsp_camera_only,
             has_rtsp=has_rtsp,
+            is_camera=is_camera,
             last_seen=scanned_at,
         )
 
+    def _merge_rtsp_hits(
+        self, port_results: dict[str, list[int]], rtsp_hits: set[str]
+    ) -> None:
+        """Ensure RTSP probe results are reflected in port scan data."""
+        for ip in rtsp_hits:
+            ports = set(port_results.get(ip, []))
+            ports.add(RTSP_PORT)
+            port_results[ip] = sorted(ports)
+
     def _get_subnet_hosts(self) -> list[str]:
-        """Return all host IPs in the configured subnet."""
-        if not self._subnet:
+        """Return all host IPs in the configured or inferred subnet."""
+        subnet = self._resolve_subnet()
+        if not subnet:
             return []
         try:
-            network = ipaddress.ip_network(self._subnet, strict=False)
-            return [str(ip) for ip in network.hosts()]
+            network = ipaddress.ip_network(subnet, strict=False)
+            hosts = [str(ip) for ip in network.hosts()]
+            _LOGGER.debug("Subnet %s: scanning %d host addresses", subnet, len(hosts))
+            return hosts
         except ValueError:
-            _LOGGER.warning("Invalid subnet configured: %s", self._subnet)
+            _LOGGER.warning("Invalid subnet configured: %s", subnet)
             return []
+
+    def _resolve_subnet(self) -> str | None:
+        """Return the subnet to scan, inferring /24 from local IP if needed."""
+        if self._subnet:
+            return self._subnet
+        if not self._local_ip:
+            return None
+        try:
+            return str(ipaddress.ip_network(f"{self._local_ip}/24", strict=False))
+        except ValueError:
+            return None
 
     async def _async_discover_hosts(self) -> list[dict]:
         """Discover hosts on the network via ARP."""

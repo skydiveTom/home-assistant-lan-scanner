@@ -24,20 +24,20 @@ async def async_setup_entry(
     coordinator: LanScannerCoordinator = entry.runtime_data
 
     entities: list[BinarySensorEntity] = [
-        LanScannerRtspBinarySensor(coordinator, device)
+        LanScannerCameraBinarySensor(coordinator, device)
         for device in coordinator.devices.values()
     ]
 
     @callback
     def _async_add_device(mac: str, device: NetworkDevice) -> None:
-        async_add_entities([LanScannerRtspBinarySensor(coordinator, device)])
+        async_add_entities([LanScannerCameraBinarySensor(coordinator, device)])
 
     coordinator.register_new_device_callback(_async_add_device)
     async_add_entities(entities)
 
 
-class LanScannerRtspBinarySensor(LanScannerDeviceEntity, BinarySensorEntity):
-    """Binary sensor indicating RTSP-only camera (port 554 only)."""
+class LanScannerCameraBinarySensor(LanScannerDeviceEntity, BinarySensorEntity):
+    """Binary sensor indicating an RTSP/IP camera."""
 
     _attr_translation_key = "rtsp_camera"
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
@@ -48,23 +48,24 @@ class LanScannerRtspBinarySensor(LanScannerDeviceEntity, BinarySensorEntity):
         coordinator: LanScannerCoordinator,
         device: NetworkDevice,
     ) -> None:
-        """Initialize the RTSP binary sensor."""
+        """Initialize the camera binary sensor."""
         super().__init__(coordinator, device)
-        self._attr_unique_id = f"{device.mac}_rtsp_only"
+        self._attr_unique_id = f"{device.mac}_camera"
 
     @property
     def is_on(self) -> bool | None:
-        """Return True if the device is an RTSP-only camera."""
+        """Return True if the device is an IP camera (RTSP port open)."""
         if dev := self.device:
-            return dev.is_rtsp_camera_only
+            return dev.is_camera
         return False
 
     @property
     def extra_state_attributes(self) -> dict:
-        """Return RTSP-related attributes."""
+        """Return camera-related attributes."""
         if dev := self.device:
             return {
                 "has_rtsp": dev.has_rtsp,
+                "is_rtsp_camera_only": dev.is_rtsp_camera_only,
                 "open_ports": dev.open_ports,
             }
         return {}

@@ -73,10 +73,11 @@ class LanScannerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 local_ip = _validate_local_ip(user_input[CONF_LOCAL_IP])
-                subnet = (
-                    _validate_subnet(user_input[CONF_SUBNET])
-                    if user_input.get(CONF_SUBNET)
-                    else None
+                subnet = _validate_subnet(
+                    user_input.get(CONF_SUBNET)
+                    or str(
+                        ipaddress.ip_network(f"{local_ip}/24", strict=False)
+                    )
                 )
                 scan_interval = int(user_input[CONF_SCAN_INTERVAL])
                 if scan_interval < MIN_SCAN_INTERVAL:
