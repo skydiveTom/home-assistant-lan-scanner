@@ -11,10 +11,12 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
+    CONF_EXTRA_IPS,
     CONF_LOCAL_IP,
     CONF_MAC_NAMES,
     CONF_SCAN_INTERVAL,
     CONF_SCAN_PORTS,
+    CONF_SUBNET,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_SCAN_PORTS,
     DOMAIN,
@@ -73,9 +75,16 @@ class LanScannerCoordinator(DataUpdateCoordinator[ScanResult]):
         """Fetch data from the network scanner."""
         options = self.config_entry.options
         local_ip = self.config_entry.data.get(CONF_LOCAL_IP) or None
+        subnet = self.config_entry.data.get(CONF_SUBNET) or None
         scan_ports = options.get(CONF_SCAN_PORTS, DEFAULT_SCAN_PORTS)
+        extra_ips = options.get(CONF_EXTRA_IPS, [])
 
-        scanner = NetworkScanner(local_ip=local_ip, scan_ports=scan_ports)
+        scanner = NetworkScanner(
+            local_ip=local_ip,
+            subnet=subnet,
+            scan_ports=scan_ports,
+            extra_ips=extra_ips,
+        )
 
         try:
             result = await scanner.async_scan(self.mac_names)

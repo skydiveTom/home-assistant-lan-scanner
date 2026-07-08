@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import ipaddress
 from typing import Any
 
 import voluptuous as vol
@@ -9,6 +10,7 @@ from homeassistant import config_entries
 from homeassistant.data_entry_flow import FlowResult
 
 from .const import (
+    CONF_EXTRA_IPS,
     CONF_MAC_NAMES,
     CONF_SCAN_INTERVAL,
     CONF_SCAN_PORTS,
@@ -17,7 +19,33 @@ from .const import (
     DOMAIN,
     MIN_SCAN_INTERVAL,
 )
-from .scanner import normalize_mac
+from .scanner import is_pseudo_mac, normalize_mac
+
+
+def _parse_extra_ips(value: str) -> list[str]:
+    """Parse a comma-separated list of IP addresses."""
+    if not value or not value.strip():
+        return []
+    return [str(ipaddress.ip_address(part.strip())) for part in value.split(",")]
+
+
+def _format_extra_ips(extra_ips: list[str]) -> str:
+    """Format extra IPs for display in the options form."""
+    return ", ".join(extra_ips)
+
+
+def _normalize_device_id(value: str) -> str:
+    """Normalize a MAC, IP, or IP-based device identifier."""
+    cleaned = value.strip().lower()
+    if is_pseudo_mac(cleaned):
+        return cleaned
+    try:
+        from .scanner import ip_to_pseudo_mac
+
+        return ip_to_pseudo_mac(str(ipaddress.ip_address(cleaned)))
+    except ValueError:
+        pass
+    return normalize_mac(cleaned)
 
 
 class LanScannerOptionsFlowHandler(config_entries.OptionsFlow):
@@ -50,17 +78,32 @@ class LanScannerOptionsFlowHandler(config_entries.OptionsFlow):
     ) -> FlowResult:
         """Handle scan settings."""
         if user_input is not None:
+            try:
+                extra_ips = _parse_extra_ips(user_input.get(CONF_EXTRA_IPS, ""))
+            except ValueError:
+                return self.async_show_form(
+                    step_id="settings",
+                    data_schema=self._settings_schema(),
+                    errors={CONF_EXTRA_IPS: "invalid_ip"},
+                )
             return self.async_create_entry(
                 title="",
                 data={
                     **self._config_entry.options,
                     CONF_SCAN_INTERVAL: user_input[CONF_SCAN_INTERVAL],
                     CONF_SCAN_PORTS: user_input[CONF_SCAN_PORTS],
+                    CONF_EXTRA_IPS: extra_ips,
                 },
             )
 
+        return self.async_show_form(
+            step_id="settings", data_schema=self._settings_schema()
+        )
+
+    def _settings_schema(self) -> vol.Schema:
+        """Return the settings form schema."""
         options = self._config_entry.options
-        schema = vol.Schema(
+        return vol.Schema(
             {
                 vol.Required(
                     CONF_SCAN_INTERVAL,
@@ -70,10 +113,12 @@ class LanScannerOptionsFlowHandler(config_entries.OptionsFlow):
                     CONF_SCAN_PORTS,
                     default=options.get(CONF_SCAN_PORTS, DEFAULT_SCAN_PORTS),
                 ): bool,
+                vol.Optional(
+                    CONF_EXTRA_IPS,
+                    default=_format_extra_ips(options.get(CONF_EXTRA_IPS, [])),
+                ): str,
             }
         )
-
-        return self.async_show_form(step_id="settings", data_schema=schema)
 
     async def async_step_mac_names(
         self, user_input: dict[str, Any] | None = None
@@ -88,12 +133,12 @@ class LanScannerOptionsFlowHandler(config_entries.OptionsFlow):
             action = user_input.get("action", "add")
             if action == "add":
                 try:
-                    mac = normalize_mac(user_input["mac"])
+                    device_id = _normalize_device_id(user_input["mac"])
                     name = user_input["name"].strip()
                     if not name:
                         errors["name"] = "name_required"
                     else:
-                        mac_names[mac] = name
+                        mac_names[device_id] = name
                         return self.async_create_entry(
                             title="",
                             data={
@@ -104,8 +149,7 @@ class LanScannerOptionsFlowHandler(config_entries.OptionsFlow):
                 except (ValueError, TypeError):
                     errors["mac"] = "invalid_mac"
             elif action == "remove" and user_input.get("mac_to_remove"):
-                mac = normalize_mac(user_input["mac_to_remove"])
-                mac_names.pop(mac, None)
+                mac_names.pop(user_input["mac_to_remove"], None)
                 return self.async_create_entry(
                     title="",
                     data={

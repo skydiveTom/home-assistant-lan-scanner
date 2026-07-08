@@ -10,15 +10,20 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN
 from .coordinator import LanScannerCoordinator
 from .models import NetworkDevice
+from .scanner import is_pseudo_mac
 
 
 def get_device_info(device: NetworkDevice) -> DeviceInfo:
     """Build DeviceInfo for a discovered network device."""
+    connections: set[tuple[str, str]] = set()
+    if not is_pseudo_mac(device.mac):
+        connections.add((dr.CONNECTION_NETWORK_MAC, device.mac))
+
     return DeviceInfo(
         identifiers={(DOMAIN, device.mac)},
         name=device.friendly_name,
         manufacturer=device.vendor,
-        connections={(dr.CONNECTION_NETWORK_MAC, device.mac)},
+        connections=connections or None,
     )
 
 

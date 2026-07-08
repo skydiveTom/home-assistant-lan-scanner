@@ -31,7 +31,8 @@
         "title": "Ustawienia skanowania",
         "data": {
           "scan_interval": "Interwał skanowania (sekundy)",
-          "scan_ports": "Skanuj porty (kamery RTSP)"
+          "scan_ports": "Skanuj porty (kamery RTSP)",
+          "extra_ips": "Zawsze skanuj te adresy IP (oddzielone przecinkiem)"
         }
       },
       "mac_names": {
@@ -47,6 +48,7 @@
     },
     "error": {
       "invalid_mac": "Nieprawidłowy adres MAC.",
+      "invalid_ip": "Nieprawidłowy adres IP na liście.",
       "name_required": "Nazwa jest wymagana."
     }
   },
